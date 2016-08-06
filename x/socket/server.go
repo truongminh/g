@@ -1,0 +1,57 @@
+package socket
+
+import (
+	"errors"
+	"golang.org/x/net/websocket"
+	"sync"
+)
+
+func (b *Box) AcceptPublic(ws *websocket.Conn, args ...Auth) {
+	var a = args[0]
+	if a == nil {
+		a = &AuthOff
+	}
+	b.Accept(ws, a)
+}
+
+func (b *Box) Accept(ws *websocket.Conn, a Auth) {
+
+	var wait = sync.WaitGroup{}
+	var codec = websocket.Message
+
+	var w = NewChanResponseWriter()
+
+	go func() {
+		wait.Add(1)
+		for {
+			var data = string(<-w.send)
+			if err := codec.Send(ws, data); err != nil {
+				break
+			}
+		}
+		wait.Done()
+	}()
+
+	for {
+		var data []byte
+		if err := codec.Receive(ws, &data); err != nil {
+			break
+		}
+		var r = NewRequest(a, data)
+		b.Serve(w, r)
+	}
+	wait.Wait()
+	b.SubManager.Unsubscribe(w)
+}
+
+func (b *Box) notFound(w ResponseWriter, request *Request) {
+	SendError(w, errors.New("HANDLER NOT FOUND"))
+}
+
+func (b *Box) defaultRecover(w ResponseWriter, r *Request, rc interface{}) {
+	if err, ok := rc.(error); ok {
+		SendError(w, err)
+	} else {
+		SendError(w, errors.New("server error"))
+	}
+}
