@@ -10,12 +10,12 @@ type RethinkDB struct {
 	dbName  string
 }
 
-func NewRethinkDB(address string, dbName string) *RethinkDB {
+func NewRethinkDB(address string, dbName string, tag string) *RethinkDB {
 	var session, err = r.Connect(r.ConnectOpts{Address: address})
 	if err != nil {
 		glog.Fatal(err)
 	}
-	glog.Infof("RethinkDB online %v/%v", address, dbName)
+	glog.Infof("RethinkDB online %v/%v for %v", address, dbName, tag)
 	return &RethinkDB{
 		Session: session,
 		dbName:  dbName,

@@ -14,7 +14,7 @@ func (s *JsonServer) SendError(w http.ResponseWriter, err error) {
 		if werr, ok := err.(IWebError); ok {
 			w.WriteHeader(werr.StatusCode())
 		} else {
-			glog.Error(debug.Stack())
+			glog.Error(err, string(debug.Stack()))
 			err = ErrServerError
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -56,7 +56,7 @@ func (s *JsonServer) Recover(w http.ResponseWriter) {
 			s.SendError(w, err)
 		} else {
 			s.SendError(w, ErrServerError)
-			glog.Error(debug.Stack())
+			glog.Error(r, string(debug.Stack()))
 		}
 	}
 }
