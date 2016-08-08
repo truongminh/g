@@ -27,6 +27,8 @@ func RandString(prefix string, length int) string {
 	return fmt.Sprintf("%s_%s", prefix, string(id))
 }
 
+var numbers = "0123456789"
+
 func RandNumString(length int) string {
 	// Create an array with the correct capacity
 	id := make([]byte, length)
@@ -35,7 +37,7 @@ func RandNumString(length int) string {
 
 	// Replace each random number with an alphanumeric value
 	for i, b := range id {
-		id[i] = b % 10
+		id[i] = numbers[b%10]
 	}
 	return string(id)
 }
