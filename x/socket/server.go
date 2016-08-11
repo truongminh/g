@@ -2,8 +2,9 @@ package socket
 
 import (
 	"errors"
-	"golang.org/x/net/websocket"
 	"sync"
+
+	"golang.org/x/net/websocket"
 )
 
 func (b *Box) AcceptPublic(ws *websocket.Conn, args ...Auth) {
@@ -20,6 +21,7 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 	var codec = websocket.Message
 
 	var w = NewChanResponseWriter()
+	b.Join(w, a)
 
 	go func() {
 		wait.Add(1)
@@ -54,4 +56,8 @@ func (b *Box) defaultRecover(w ResponseWriter, r *Request, rc interface{}) {
 	} else {
 		SendError(w, errors.New("server error"))
 	}
+}
+
+func (b *Box) join(w ResponseWriter, a Auth) {
+
 }

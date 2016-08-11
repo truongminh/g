@@ -8,6 +8,7 @@ type Box struct {
 	SubManager  *SubscriptionManagement
 	handlers    map[string]IBoxHandler
 	NotFound    IBoxHandler
+	Join        func(ResponseWriter, Auth)
 	Recover     func(ResponseWriter, *Request, interface{})
 }
 
@@ -21,6 +22,7 @@ func NewBox(ID string) *Box {
 	}
 	b.Recover = b.defaultRecover
 	b.NotFound = b.notFound
+	b.Join = b.join
 	b.Handle("/echo", b.Echo)
 	return b
 }
