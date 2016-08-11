@@ -18,6 +18,13 @@ func (e BadRequest) StatusCode() int {
 	return http.StatusBadRequest
 }
 
+func WrapBadRequest(err error, message string) error {
+	if err != nil {
+		return BadRequest(message + ":" + err.Error())
+	}
+	return nil
+}
+
 type Unauthorized string
 
 func (e Unauthorized) Error() string {
