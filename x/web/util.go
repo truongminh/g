@@ -2,6 +2,7 @@ package web
 
 import (
 	"strconv"
+	"strings"
 )
 
 type IGetable interface {
@@ -22,4 +23,12 @@ func MustGetInt64(key string, g IGetable) int64 {
 		panic(BadRequest(key + " must be int"))
 	}
 	return v
+}
+
+func GetArrString(key string, sep string, g IGetable) []string {
+	var value = g.Get(key)
+	if len(value) < 1 {
+		return []string{}
+	}
+	return strings.Split(value, sep)
 }
