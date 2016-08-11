@@ -11,6 +11,7 @@ type JsonServer struct{}
 
 func (s *JsonServer) SendError(w http.ResponseWriter, err error) {
 	if err != nil {
+		w.Header().Add("Content-Type", "application/json")
 		if werr, ok := err.(IWebError); ok {
 			w.WriteHeader(werr.StatusCode())
 		} else {
@@ -18,20 +19,20 @@ func (s *JsonServer) SendError(w http.ResponseWriter, err error) {
 			err = ErrServerError
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-		s.SendJson(w, map[string]string{
+		s.sendJson(w, map[string]string{
 			"status": "error",
 			"error":  err.Error(),
 		})
 	}
 }
 
-func (s *JsonServer) SendJson(w http.ResponseWriter, v interface{}) {
-	w.Header().Add("Content-Type", "application/json")
+func (s *JsonServer) sendJson(w http.ResponseWriter, v interface{}) {
 	json.NewEncoder(w).Encode(v)
 }
 
 func (s *JsonServer) SendData(w http.ResponseWriter, v interface{}) {
-	s.SendJson(w, map[string]interface{}{
+	w.Header().Add("Content-Type", "application/json")
+	s.sendJson(w, map[string]interface{}{
 		"status": "success",
 		"data":   v,
 	})
