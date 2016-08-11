@@ -36,3 +36,31 @@ func (db *RethinkDB) QueryBuilder() r.Term {
 func (db *RethinkDB) IsErrEmpty(err error) bool {
 	return err == r.ErrEmptyResult
 }
+
+func (db *RethinkDB) MustGetTable(name string) r.Term {
+	var cursor, err = r.DB(db.dbName).TableList().Run(db.Session)
+	if err != nil {
+		panic(err)
+	}
+
+	var names []string
+	if err := cursor.All(&names); err != nil {
+		panic(err)
+	}
+
+	for _, table := range names {
+		if table == name {
+			return db.Table(name)
+		}
+	}
+
+	// create table
+	{
+		var _, err = r.DB(db.dbName).TableCreate(name).RunWrite(db.Session)
+		if err != nil {
+			panic(err)
+		}
+		return db.Table(name)
+	}
+
+}
