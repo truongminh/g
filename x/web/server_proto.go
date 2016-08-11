@@ -41,7 +41,10 @@ func (s *JsonServer) Success(w http.ResponseWriter) {
 }
 
 func (s *JsonServer) DecodeBody(r *http.Request, v interface{}) error {
-	return json.NewDecoder(r.Body).Decode(v)
+	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
+		return BadRequest(err.Error())
+	}
+	return nil
 }
 
 func (s *JsonServer) MustDecodeBody(r *http.Request, v interface{}) {
