@@ -27,6 +27,15 @@ func RandString(prefix string, length int) string {
 	return fmt.Sprintf("%s_%s", prefix, string(id))
 }
 
+type RandStringMaker struct {
+	Prefix string
+	Length int
+}
+
+func (m *RandStringMaker) Next() string {
+	return RandString(m.Prefix, m.Length)
+}
+
 var numbers = "0123456789"
 
 func RandNumString(length int) string {
