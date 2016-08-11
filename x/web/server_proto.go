@@ -30,6 +30,11 @@ func (s *JsonServer) sendJson(w http.ResponseWriter, v interface{}) {
 	json.NewEncoder(w).Encode(v)
 }
 
+func (s *JsonServer) SendJson(w http.ResponseWriter, v interface{}) {
+	w.Header().Add("Content-Type", "application/json")
+	s.sendJson(w, v)
+}
+
 func (s *JsonServer) SendData(w http.ResponseWriter, v interface{}) {
 	w.Header().Add("Content-Type", "application/json")
 	s.sendJson(w, map[string]interface{}{
