@@ -26,6 +26,7 @@ func (s *JsonServer) SendError(w http.ResponseWriter, err error) {
 }
 
 func (s *JsonServer) SendJson(w http.ResponseWriter, v interface{}) {
+	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(v)
 }
 
