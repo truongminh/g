@@ -8,11 +8,11 @@ import (
 )
 
 func (b *Box) AcceptPublic(ws *websocket.Conn, args ...Auth) {
-	var a = args[0]
-	if a == nil {
-		a = &AuthOff
+	if len(args) < 1 {
+		b.Accept(ws, &AuthOff)
+	} else {
+		b.Accept(ws, args[0])
 	}
-	b.Accept(ws, a)
 }
 
 func (b *Box) Accept(ws *websocket.Conn, a Auth) {
