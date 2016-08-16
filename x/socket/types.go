@@ -9,8 +9,8 @@ type Auth interface {
 
 type AuthID string
 
-func (a *AuthID) ID() string {
-	return string(*a)
+func (a AuthID) ID() string {
+	return string(a)
 }
 
 var AuthOff = AuthID("")
