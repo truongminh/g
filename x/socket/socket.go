@@ -15,13 +15,13 @@ func AddPrefixEventHandler(prefix string, handler EventHandler) EventHandler {
 
 type Request struct {
 	Payload []byte
-	RawURI  []byte
+	RawURI  string
 	URI     *url.URL
 	Data    []byte
 	Auth    Auth
 }
 
-func NewRequest(a Auth, payload []byte) *Request {
+func NewRequest(a Auth, payload []byte) (*Request, error) {
 	var r = &Request{
 		Auth:    a,
 		Payload: payload,
@@ -30,16 +30,21 @@ func NewRequest(a Auth, payload []byte) *Request {
 	var endOfURI = bytes.Index(payload, []byte(" "))
 	var remaining = payload
 	if endOfURI < 0 {
-		r.RawURI = remaining
+		r.RawURI = string(remaining)
 		remaining = remaining[0:0]
 	} else {
-		r.RawURI = remaining[:endOfURI]
+		r.RawURI = string(remaining[:endOfURI])
 		remaining = remaining[endOfURI+1:]
 	}
 
-	r.URI, _ = url.ParseRequestURI(string(r.RawURI))
+	var err error
+
+	r.URI, err = url.ParseRequestURI(r.RawURI)
+	if err != nil {
+		return nil, err
+	}
 	r.Data = remaining
-	return r
+	return r, nil
 }
 
 func (r *Request) Path() string {
