@@ -2,9 +2,10 @@ package socket
 
 import (
 	"errors"
-	"sync"
-
+	"github.com/golang/glog"
 	"golang.org/x/net/websocket"
+	"runtime/debug"
+	"sync"
 )
 
 func (b *Box) AcceptPublic(ws *websocket.Conn, args ...Auth) {
@@ -39,8 +40,12 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 		if err := codec.Receive(ws, &data); err != nil {
 			break
 		}
-		var r = NewRequest(a, data)
-		b.Serve(w, r)
+		var r, err = NewRequest(a, data)
+		if err != nil {
+			SendError(w, err)
+		} else {
+			b.Serve(w, r)
+		}
 	}
 	wait.Wait()
 	b.SubManager.Unsubscribe(w)
@@ -52,8 +57,11 @@ func (b *Box) notFound(w ResponseWriter, request *Request) {
 
 func (b *Box) defaultRecover(w ResponseWriter, r *Request, rc interface{}) {
 	if err, ok := rc.(error); ok {
+		glog.Error(err, string(debug.Stack()))
+		err = errors.New("server error")
 		SendError(w, err)
 	} else {
+		glog.Error(rc, string(debug.Stack()))
 		SendError(w, errors.New("server error"))
 	}
 }
