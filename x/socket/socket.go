@@ -58,3 +58,11 @@ func (r *Request) UnmarshalJson(v interface{}) error {
 func (r *Request) String() string {
 	return fmt.Sprintf("url: [%s], data: [%s]\n", r.RawURI, r.Data)
 }
+
+func (r *Request) Reply(w ResponseWriter, v interface{}) {
+	SendJson(w, r.RawURI, v)
+}
+
+func (r *Request) ReplyError(w ResponseWriter, v interface{}) {
+	SendJson(w, "/error/"+r.RawURI, v)
+}
