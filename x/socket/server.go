@@ -27,7 +27,11 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 	go func() {
 		wait.Add(1)
 		for {
-			var data = string(<-w.send)
+			var bytes, ok = <-w.send
+			if !ok {
+				break
+			}
+			var data = string(bytes)
 			if err := codec.Send(ws, data); err != nil {
 				break
 			}
@@ -47,6 +51,7 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 			b.Serve(w, r)
 		}
 	}
+	close(w.send)
 	wait.Wait()
 	b.SubManager.Unsubscribe(w)
 }
