@@ -23,5 +23,15 @@ func (s *SubscriptionManagement) Subscribe(w ResponseWriter, uri string) {
 }
 
 func (s *SubscriptionManagement) Unsubscribe(w ResponseWriter) {
-
+	for uri, line := range s.subscribers {
+		var newLine = make([]ResponseWriter, 0)
+		for _, sw := range line {
+			if sw.SubscribeAs() != w.SubscribeAs() {
+				newLine = append(newLine, sw)
+			} else {
+				println("unsube", uri)
+			}
+		}
+		s.subscribers[uri] = newLine
+	}
 }
