@@ -9,6 +9,12 @@ import (
 
 type JsonServer struct{}
 
+func (s *JsonServer) MustMethodPost(r *http.Request) {
+	if r.Method != http.MethodPost {
+		panic(BadRequest("Method not allowed"))
+	}
+}
+
 func (s *JsonServer) SendError(w http.ResponseWriter, err error) {
 	if err != nil {
 		w.Header().Add("Content-Type", "application/json")
