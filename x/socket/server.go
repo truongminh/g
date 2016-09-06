@@ -2,15 +2,16 @@ package socket
 
 import (
 	"errors"
-	"github.com/golang/glog"
-	"golang.org/x/net/websocket"
 	"runtime/debug"
 	"sync"
+
+	"github.com/golang/glog"
+	"golang.org/x/net/websocket"
 )
 
 func (b *Box) AcceptPublic(ws *websocket.Conn, args ...Auth) {
 	if len(args) < 1 {
-		b.Accept(ws, &AuthOff)
+		b.Accept(ws, AuthOff)
 	} else {
 		b.Accept(ws, args[0])
 	}
@@ -22,7 +23,13 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 	var codec = websocket.Message
 
 	var w = NewChanResponseWriter()
-	b.Join(w, a)
+
+	defer func() {
+		close(w.send)
+		wait.Wait()
+		delete(b.Writers, w.SubscribeAs())
+		b.SubManager.Unsubscribe(w)
+	}()
 
 	go func() {
 		wait.Add(1)
@@ -39,6 +46,9 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 		wait.Done()
 	}()
 
+	b.Join(w, a)
+	b.Writers[w.SubscribeAs()] = w
+
 	for {
 		var data []byte
 		if err := codec.Receive(ws, &data); err != nil {
@@ -51,9 +61,6 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 			b.Serve(w, r)
 		}
 	}
-	close(w.send)
-	wait.Wait()
-	b.SubManager.Unsubscribe(w)
 }
 
 func (b *Box) notFound(w ResponseWriter, request *Request) {
@@ -73,4 +80,10 @@ func (b *Box) defaultRecover(w ResponseWriter, r *Request, rc interface{}) {
 
 func (b *Box) join(w ResponseWriter, a Auth) {
 
+}
+
+func (b *Box) Broadcast(uri string, v interface{}) {
+	for _, w := range b.Writers {
+		SendJson(w, uri, v)
+	}
 }
