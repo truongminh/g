@@ -9,6 +9,7 @@ type Box struct {
 	handlers    map[string]IBoxHandler
 	NotFound    IBoxHandler
 	Join        func(ResponseWriter, Auth)
+	Writers     map[string]ResponseWriter
 	Recover     func(ResponseWriter, *Request, interface{})
 }
 
@@ -19,6 +20,7 @@ func NewBox(ID string) *Box {
 		Subscribers: make(map[string]ResponseWriter),
 		SubManager:  newSubscriptionManagement(),
 		handlers:    make(map[string]IBoxHandler),
+		Writers:     make(map[string]ResponseWriter),
 	}
 	b.Recover = b.defaultRecover
 	b.NotFound = b.notFound
