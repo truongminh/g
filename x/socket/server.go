@@ -2,15 +2,16 @@ package socket
 
 import (
 	"errors"
-	"github.com/golang/glog"
-	"golang.org/x/net/websocket"
 	"runtime/debug"
 	"sync"
+
+	"github.com/golang/glog"
+	"golang.org/x/net/websocket"
 )
 
 func (b *Box) AcceptPublic(ws *websocket.Conn, args ...Auth) {
 	if len(args) < 1 {
-		b.Accept(ws, &AuthOff)
+		b.Accept(ws, AuthOff)
 	} else {
 		b.Accept(ws, args[0])
 	}
@@ -22,6 +23,13 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 	var codec = websocket.Message
 
 	var w = NewChanResponseWriter()
+
+	defer func() {
+		close(w.send)
+		wait.Wait()
+		b.SubManager.Unsubscribe(w)
+	}()
+
 	b.Join(w, a)
 
 	go func() {
@@ -51,9 +59,6 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 			b.Serve(w, r)
 		}
 	}
-	close(w.send)
-	wait.Wait()
-	b.SubManager.Unsubscribe(w)
 }
 
 func (b *Box) notFound(w ResponseWriter, request *Request) {
