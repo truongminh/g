@@ -29,7 +29,7 @@ func (s *SubscriptionManagement) Unsubscribe(w ResponseWriter) {
 			if sw.SubscribeAs() != w.SubscribeAs() {
 				newLine = append(newLine, sw)
 			} else {
-				println("unsube", uri)
+				//
 			}
 		}
 		s.subscribers[uri] = newLine
