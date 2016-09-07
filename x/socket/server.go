@@ -69,6 +69,10 @@ func (b *Box) notFound(w ResponseWriter, request *Request) {
 
 func (b *Box) defaultRecover(w ResponseWriter, r *Request, rc interface{}) {
 	if err, ok := rc.(error); ok {
+		if _, ok = err.(IWebError); ok {
+			SendError(w, err)
+			return
+		}
 		glog.Error(err, string(debug.Stack()))
 		err = errors.New("server error")
 		SendError(w, err)
