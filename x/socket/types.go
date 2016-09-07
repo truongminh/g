@@ -14,7 +14,3 @@ func (a AuthID) ID() string {
 }
 
 var AuthOff = AuthID("")
-
-type IWebError interface {
-	StatusCode() int
-}
