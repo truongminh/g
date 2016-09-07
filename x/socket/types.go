@@ -15,6 +15,6 @@ func (a AuthID) ID() string {
 
 var AuthOff = AuthID("")
 
-type IPublicError interface {
+type IWebError interface {
 	StatusCode() int
 }
