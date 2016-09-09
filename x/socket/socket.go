@@ -52,7 +52,7 @@ func (r *Request) Path() string {
 }
 
 func (r *Request) UnmarshalJson(v interface{}) error {
-	return json.Unmarshal(r.Data, v)
+	return WrapBadRequest(json.Unmarshal(r.Data, v), "unmarshal json")
 }
 
 func (r *Request) String() string {
