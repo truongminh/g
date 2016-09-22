@@ -6,12 +6,10 @@ import (
 
 // update modifies the priority and value of an Item in the queue.
 func (m *Map) Insert(value IEntry) {
-	m.q.Print("insert")
 	heap.Push(m.q, value)
 }
 
 func (m *Map) Update(value IEntry) {
-	m.q.Print("update")
 	heap.Fix(m.q, value.S2GetIndex())
 }
 
