@@ -1,26 +1,26 @@
 package socket
 
-type WsClientByAuth map[string]WsClient
+type WsClientByAuth map[string]*WsClient
 
 func newWsClientByAuth() WsClientByAuth {
-	return WsClientByAuth(map[string]WsClient{})
+	return WsClientByAuth(map[string]*WsClient{})
 }
 
 func (r WsClientByAuth) empty() bool {
 	return len(r) == 0
 }
 
-func (r WsClientByAuth) add(w WsClient) {
-	r[w.UID()] = w
+func (r WsClientByAuth) add(w *WsClient) {
+	r[w.UID] = w
 }
 
-func (r WsClientByAuth) remove(w WsClient) {
-	delete(r, w.UID())
+func (r WsClientByAuth) remove(w *WsClient) {
+	delete(r, w.UID)
 }
 
 func (r WsClientByAuth) Send(payload []byte) {
 	for _, w := range r {
-		Send(w, payload)
+		w.Write(payload)
 	}
 }
 
@@ -30,8 +30,8 @@ func NewWsClientManager() WsClientManager {
 	return WsClientManager(map[string]WsClientByAuth{})
 }
 
-func (rb WsClientManager) Add(w WsClient) {
-	var id = w.Auth().ID()
+func (rb WsClientManager) Add(w *WsClient) {
+	var id = w.Auth.ID()
 	var r = rb[id]
 	if r == nil {
 		r = newWsClientByAuth()
@@ -40,8 +40,8 @@ func (rb WsClientManager) Add(w WsClient) {
 	r.add(w)
 }
 
-func (rb WsClientManager) Remove(w WsClient) {
-	var id = w.Auth().ID()
+func (rb WsClientManager) Remove(w *WsClient) {
+	var id = w.Auth.ID()
 	var r = rb[id]
 	if r == nil {
 		return

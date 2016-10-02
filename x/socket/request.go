@@ -18,10 +18,10 @@ type Request struct {
 	RawURI  string
 	URI     *url.URL
 	Data    []byte
-	Client  WsClient
+	Client  *WsClient
 }
 
-func NewRequest(w WsClient, payload []byte) (*Request, error) {
+func NewRequest(w *WsClient, payload []byte) (*Request, error) {
 	var r = &Request{
 		Client:  w,
 		Payload: payload,
@@ -60,13 +60,13 @@ func (r *Request) String() string {
 }
 
 func (r *Request) Reply(v interface{}) {
-	SendJson(r.Client, r.RawURI, v)
+	r.Client.WriteJson(r.RawURI, v)
 }
 
 func (r *Request) Error(v interface{}) {
-	SendJson(r.Client, "/error/"+r.RawURI, v)
+	r.Client.WriteJson("/error/"+r.RawURI, v)
 }
 
 func (r *Request) AuthID() string {
-	return r.Client.Auth().ID()
+	return r.Client.Auth.ID()
 }

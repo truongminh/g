@@ -8,8 +8,7 @@ type Box struct {
 	SubManager *SubscriptionManagement
 	handlers   map[string]IBoxHandler
 	NotFound   IBoxHandler
-	Join       func(WsClient)
-	Writers    map[string]WsClient
+	Join       func(*WsClient)
 	Recover    func(*Request, interface{})
 }
 

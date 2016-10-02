@@ -22,19 +22,18 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 	var wait = sync.WaitGroup{}
 	var codec = websocket.Message
 
-	var w = NewChanWsClient(a)
+	var c = NewChanWsClient(a)
 
 	defer func() {
-		close(w.send)
+		c.Close()
 		wait.Wait()
-		b.Clients.Remove(w)
-		b.SubManager.Unsubscribe(w)
+		b.Clients.Remove(c)
 	}()
 
 	go func() {
 		wait.Add(1)
 		for {
-			var bytes, ok = <-w.send
+			var bytes, ok = c.Read()
 			if !ok {
 				break
 			}
@@ -46,17 +45,17 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 		wait.Done()
 	}()
 
-	b.Join(w)
-	b.Clients.Add(w)
+	b.Join(c)
+	b.Clients.Add(c)
 
 	for {
 		var data []byte
 		if err := codec.Receive(ws, &data); err != nil {
 			break
 		}
-		var r, err = NewRequest(w, data)
+		var r, err = NewRequest(c, data)
 		if err != nil {
-			SendError(w, err)
+			c.Error(err)
 		} else {
 			b.Serve(r)
 		}
@@ -86,6 +85,6 @@ func (b *Box) defaultRecover(r *Request, rc interface{}) {
 	}
 }
 
-func (b *Box) join(w WsClient) {
+func (b *Box) join(w *WsClient) {
 
 }

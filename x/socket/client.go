@@ -3,25 +3,21 @@ package socket
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"g/x/math"
 )
 
-type WsClient interface {
-	Write(p []byte)
-	UID() string
-	Auth() Auth
+type WsClient struct {
+	ReadWriter
+	UID  string
+	Auth Auth
 }
 
-func SendError(w WsClient, err error) {
-	w.Write(BuildStringMessage("/error", err.Error()))
+func (c *WsClient) Error(err error) {
+	c.Write(BuildStringMessage("/error", err.Error()))
 }
 
-func SendJson(w WsClient, uri string, v interface{}) {
-	w.Write(BuildJsonMessage(uri, v))
-}
-
-func Send(w WsClient, payload []byte) {
-	w.Write(payload)
+func (c *WsClient) WriteJson(uri string, v interface{}) {
+	c.Write(BuildJsonMessage(uri, v))
 }
 
 func BuildJsonMessage(uri string, v interface{}) []byte {
@@ -40,28 +36,35 @@ func BuildRawMessage(uri []byte, data []byte) []byte {
 	return buffer.Bytes()
 }
 
+var idMakerChanWsClient = math.RandStringMaker{Prefix: "chan", Length: 10}
+
+const chanWriterLength = 10
+
 type ChanWsClient struct {
-	send chan []byte
-	id   string
-	auth Auth
+	WsClient
+	chanWriter
 }
 
-func NewChanWsClient(a Auth) *ChanWsClient {
-	var c = &ChanWsClient{}
-	c.send = make(chan []byte)
-	c.id = fmt.Sprintf("chan-%v", c)
-	c.auth = a
+type chanWriter chan []byte
+
+func NewChanWsClient(a Auth) *WsClient {
+	var c = &WsClient{
+		Auth:       a,
+		UID:        idMakerChanWsClient.Next(),
+		ReadWriter: chanWriter(make(chan []byte, chanWriterLength)),
+	}
 	return c
 }
 
-func (c *ChanWsClient) Write(data []byte) {
-	c.send <- data
+func (c chanWriter) Write(data []byte) {
+	c <- data
 }
 
-func (c *ChanWsClient) UID() string {
-	return c.id
+func (c chanWriter) Read() ([]byte, bool) {
+	var bytes, ok = <-c
+	return bytes, ok
 }
 
-func (c *ChanWsClient) Auth() Auth {
-	return c.auth
+func (c chanWriter) Close() {
+	close(c)
 }

@@ -26,7 +26,7 @@ func (s *SubscriptionManagement) Unsubscribe(w WsClient) {
 	for uri, line := range s.subscribers {
 		var newLine = make([]WsClient, 0)
 		for _, sw := range line {
-			if sw.UID() != w.UID() {
+			if sw.UID != w.UID {
 				newLine = append(newLine, sw)
 			} else {
 				//
