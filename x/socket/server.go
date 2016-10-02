@@ -22,12 +22,12 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 	var wait = sync.WaitGroup{}
 	var codec = websocket.Message
 
-	var w = NewChanResponseWriter()
+	var w = NewChanWsClient(a)
 
 	defer func() {
 		close(w.send)
 		wait.Wait()
-		delete(b.Writers, w.SubscribeAs())
+		b.Clients.Remove(w)
 		b.SubManager.Unsubscribe(w)
 	}()
 
@@ -46,48 +46,46 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 		wait.Done()
 	}()
 
-	b.Join(w, a)
-	b.Writers[w.SubscribeAs()] = w
+	b.Join(w)
+	b.Clients.Add(w)
 
 	for {
 		var data []byte
 		if err := codec.Receive(ws, &data); err != nil {
 			break
 		}
-		var r, err = NewRequest(a, data)
+		var r, err = NewRequest(w, data)
 		if err != nil {
 			SendError(w, err)
 		} else {
-			b.Serve(w, r)
+			b.Serve(r)
 		}
 	}
 }
 
-func (b *Box) notFound(w ResponseWriter, request *Request) {
-	SendError(w, errors.New("HANDLER NOT FOUND"))
+var (
+	errHandlerNotFound = errors.New("HANDLER NOT FOUND")
+	errInternalServer  = errors.New("SERVER ERROR")
+)
+
+func (b *Box) notFound(r *Request) {
+	r.Error(errHandlerNotFound)
 }
 
-func (b *Box) defaultRecover(w ResponseWriter, r *Request, rc interface{}) {
+func (b *Box) defaultRecover(r *Request, rc interface{}) {
 	if err, ok := rc.(error); ok {
 		if _, ok = err.(IWebError); ok {
-			SendError(w, err)
+			r.Error(err)
 			return
 		}
 		glog.Error(err, string(debug.Stack()))
-		err = errors.New("server error")
-		SendError(w, err)
+		r.Error(errInternalServer)
 	} else {
 		glog.Error(rc, string(debug.Stack()))
-		SendError(w, errors.New("server error"))
+		r.Error(errInternalServer)
 	}
 }
 
-func (b *Box) join(w ResponseWriter, a Auth) {
+func (b *Box) join(w WsClient) {
 
-}
-
-func (b *Box) Broadcast(uri string, v interface{}) {
-	for _, w := range b.Writers {
-		SendJson(w, uri, v)
-	}
 }

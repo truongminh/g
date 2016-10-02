@@ -18,12 +18,12 @@ type Request struct {
 	RawURI  string
 	URI     *url.URL
 	Data    []byte
-	Auth    Auth
+	Client  WsClient
 }
 
-func NewRequest(a Auth, payload []byte) (*Request, error) {
+func NewRequest(w WsClient, payload []byte) (*Request, error) {
 	var r = &Request{
-		Auth:    a,
+		Client:  w,
 		Payload: payload,
 	}
 
@@ -59,10 +59,14 @@ func (r *Request) String() string {
 	return fmt.Sprintf("url: [%s], data: [%s]\n", r.RawURI, r.Data)
 }
 
-func (r *Request) Reply(w ResponseWriter, v interface{}) {
-	SendJson(w, r.RawURI, v)
+func (r *Request) Reply(v interface{}) {
+	SendJson(r.Client, r.RawURI, v)
 }
 
-func (r *Request) ReplyError(w ResponseWriter, v interface{}) {
-	SendJson(w, "/error/"+r.RawURI, v)
+func (r *Request) Error(v interface{}) {
+	SendJson(r.Client, "/error/"+r.RawURI, v)
+}
+
+func (r *Request) AuthID() string {
+	return r.Client.Auth().ID()
 }

@@ -6,17 +6,22 @@ import (
 	"fmt"
 )
 
-type ResponseWriter interface {
+type WsClient interface {
 	Write(p []byte)
-	SubscribeAs() string
+	UID() string
+	Auth() Auth
 }
 
-func SendError(w ResponseWriter, err error) {
+func SendError(w WsClient, err error) {
 	w.Write(BuildStringMessage("/error", err.Error()))
 }
 
-func SendJson(w ResponseWriter, uri string, v interface{}) {
+func SendJson(w WsClient, uri string, v interface{}) {
 	w.Write(BuildJsonMessage(uri, v))
+}
+
+func Send(w WsClient, payload []byte) {
+	w.Write(payload)
 }
 
 func BuildJsonMessage(uri string, v interface{}) []byte {
@@ -35,22 +40,28 @@ func BuildRawMessage(uri []byte, data []byte) []byte {
 	return buffer.Bytes()
 }
 
-type ChanResponseWriter struct {
+type ChanWsClient struct {
 	send chan []byte
 	id   string
+	auth Auth
 }
 
-func NewChanResponseWriter() *ChanResponseWriter {
-	var c = &ChanResponseWriter{}
+func NewChanWsClient(a Auth) *ChanWsClient {
+	var c = &ChanWsClient{}
 	c.send = make(chan []byte)
 	c.id = fmt.Sprintf("chan-%v", c)
+	c.auth = a
 	return c
 }
 
-func (c *ChanResponseWriter) Write(data []byte) {
+func (c *ChanWsClient) Write(data []byte) {
 	c.send <- data
 }
 
-func (c *ChanResponseWriter) SubscribeAs() string {
+func (c *ChanWsClient) UID() string {
 	return c.id
+}
+
+func (c *ChanWsClient) Auth() Auth {
+	return c.auth
 }

@@ -1,7 +1,7 @@
 package socket
 
 type EventHandler func(uri string, v interface{})
-type IBoxHandler func(w ResponseWriter, r *Request)
+type IBoxHandler func(r *Request)
 
 type Auth interface {
 	ID() string

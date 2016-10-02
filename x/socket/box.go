@@ -3,24 +3,23 @@ package socket
 // Box handles ws request
 //
 type Box struct {
-	ID          string
-	Subscribers map[string]ResponseWriter
-	SubManager  *SubscriptionManagement
-	handlers    map[string]IBoxHandler
-	NotFound    IBoxHandler
-	Join        func(ResponseWriter, Auth)
-	Writers     map[string]ResponseWriter
-	Recover     func(ResponseWriter, *Request, interface{})
+	ID         string
+	Clients    WsClientManager
+	SubManager *SubscriptionManagement
+	handlers   map[string]IBoxHandler
+	NotFound   IBoxHandler
+	Join       func(WsClient)
+	Writers    map[string]WsClient
+	Recover    func(*Request, interface{})
 }
 
 // NewBox create a new box
 func NewBox(ID string) *Box {
 	var b = &Box{
-		ID:          ID,
-		Subscribers: make(map[string]ResponseWriter),
-		SubManager:  newSubscriptionManagement(),
-		handlers:    make(map[string]IBoxHandler),
-		Writers:     make(map[string]ResponseWriter),
+		ID:         ID,
+		Clients:    NewWsClientManager(),
+		SubManager: newSubscriptionManagement(),
+		handlers:   make(map[string]IBoxHandler),
 	}
 	b.Recover = b.defaultRecover
 	b.NotFound = b.notFound
@@ -35,11 +34,11 @@ func (b *Box) Handle(uri string, handler IBoxHandler) {
 }
 
 // Serve process the request
-func (b *Box) Serve(w ResponseWriter, r *Request) {
+func (b *Box) Serve(r *Request) {
 
 	defer func() {
 		if rc := recover(); rc != nil {
-			b.Recover(w, r, rc)
+			b.Recover(r, rc)
 		}
 	}()
 
@@ -47,12 +46,12 @@ func (b *Box) Serve(w ResponseWriter, r *Request) {
 	if handler == nil {
 		handler = b.NotFound
 	}
-	handler(w, r)
+	handler(r)
 }
 
 // Echo the default echo service
-func (b *Box) Echo(w ResponseWriter, r *Request) {
-	w.Write(r.Payload)
+func (b *Box) Echo(r *Request) {
+	r.Client.Write(r.Payload)
 }
 
 // Emit send a message to some subscriber
@@ -61,4 +60,8 @@ func (b *Box) Emit(uri string, v interface{}) {
 	for _, w := range b.SubManager.Line(uri) {
 		w.Write(buffer)
 	}
+}
+
+func (b *Box) Broadcast(uri string, v interface{}) {
+	b.Clients.SendJson(uri, v)
 }
