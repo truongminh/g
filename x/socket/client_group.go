@@ -30,8 +30,7 @@ func NewWsClientManager() WsClientManager {
 	return WsClientManager(map[string]WsClientByAuth{})
 }
 
-func (rb WsClientManager) Add(w *WsClient) {
-	var id = w.Auth.ID()
+func (rb WsClientManager) Add(w *WsClient, id string) {
 	var r = rb[id]
 	if r == nil {
 		r = newWsClientByAuth()
@@ -40,8 +39,7 @@ func (rb WsClientManager) Add(w *WsClient) {
 	r.add(w)
 }
 
-func (rb WsClientManager) Remove(w *WsClient) {
-	var id = w.Auth.ID()
+func (rb WsClientManager) Remove(w *WsClient, id string) {
 	var r = rb[id]
 	if r == nil {
 		return

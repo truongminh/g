@@ -3,7 +3,6 @@ package socket
 import (
 	"errors"
 	"runtime/debug"
-	"sync"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/websocket"
@@ -11,27 +10,37 @@ import (
 
 func (b *Box) AcceptPublic(ws *websocket.Conn, args ...Auth) {
 	if len(args) < 1 {
-		b.Accept(ws, AuthOff)
+		b.AcceptDefault(ws, AuthOff)
 	} else {
-		b.Accept(ws, args[0])
+		b.AcceptDefault(ws, args[0])
 	}
 }
 
-func (b *Box) Accept(ws *websocket.Conn, a Auth) {
+func (b *Box) AcceptDefault(ws *websocket.Conn, a Auth) {
+	b.Accept(ws, a, b.Join, b.Leave)
+}
 
-	var wait = sync.WaitGroup{}
+func (b *Box) Accept(ws *websocket.Conn, a Auth, onJoin func(*WsClient), onLeave func(*WsClient)) {
+
 	var codec = websocket.Message
 
 	var c = NewChanWsClient(a)
+	b.Clients.Add(c, c.Auth.ID())
+	if onJoin != nil {
+		onJoin(c)
+	}
+	var done = make(chan struct{})
 
 	defer func() {
 		c.Close()
-		wait.Wait()
-		b.Clients.Remove(c)
+		<-done
+		b.Clients.Remove(c, c.Auth.ID())
+		if onLeave != nil {
+			onLeave(c)
+		}
 	}()
 
 	go func() {
-		wait.Add(1)
 		for {
 			var bytes, ok = c.Read()
 			if !ok {
@@ -42,11 +51,8 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth) {
 				break
 			}
 		}
-		wait.Done()
+		done <- struct{}{}
 	}()
-
-	b.Join(c)
-	b.Clients.Add(c)
 
 	for {
 		var data []byte
@@ -86,5 +92,9 @@ func (b *Box) defaultRecover(r *Request, rc interface{}) {
 }
 
 func (b *Box) join(w *WsClient) {
+
+}
+
+func (b *Box) leave(w *WsClient) {
 
 }

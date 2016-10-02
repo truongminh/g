@@ -3,26 +3,26 @@ package socket
 // Box handles ws request
 //
 type Box struct {
-	ID         string
-	Clients    WsClientManager
-	SubManager *SubscriptionManagement
-	handlers   map[string]IBoxHandler
-	NotFound   IBoxHandler
-	Join       func(*WsClient)
-	Recover    func(*Request, interface{})
+	ID       string
+	Clients  WsClientManager
+	handlers map[string]IBoxHandler
+	NotFound IBoxHandler
+	Join     func(*WsClient)
+	Leave    func(*WsClient)
+	Recover  func(*Request, interface{})
 }
 
 // NewBox create a new box
 func NewBox(ID string) *Box {
 	var b = &Box{
-		ID:         ID,
-		Clients:    NewWsClientManager(),
-		SubManager: newSubscriptionManagement(),
-		handlers:   make(map[string]IBoxHandler),
+		ID:       ID,
+		Clients:  NewWsClientManager(),
+		handlers: make(map[string]IBoxHandler),
 	}
 	b.Recover = b.defaultRecover
 	b.NotFound = b.notFound
 	b.Join = b.join
+	b.Leave = b.leave
 	b.Handle("/echo", b.Echo)
 	return b
 }
@@ -51,14 +51,6 @@ func (b *Box) Serve(r *Request) {
 // Echo the default echo service
 func (b *Box) Echo(r *Request) {
 	r.Client.Write(r.Payload)
-}
-
-// Emit send a message to some subscriber
-func (b *Box) Emit(uri string, v interface{}) {
-	var buffer = BuildJsonMessage(uri, v)
-	for _, w := range b.SubManager.Line(uri) {
-		w.Write(buffer)
-	}
 }
 
 func (b *Box) Broadcast(uri string, v interface{}) {
