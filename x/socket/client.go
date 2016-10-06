@@ -45,6 +45,13 @@ type ChanWsClient struct {
 	chanWriter
 }
 
+func (c *ChanWsClient) Close() {
+	if c.chanWriter != nil {
+		c.chanWriter.Close()
+		c.chanWriter = nil
+	}
+}
+
 type chanWriter chan []byte
 
 func NewChanWsClient(a Auth) *WsClient {

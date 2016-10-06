@@ -32,9 +32,9 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth, onJoin func(*WsClient), onLeave
 	var done = make(chan struct{})
 
 	defer func() {
+		b.Clients.Remove(c, c.Auth.ID())
 		c.Close()
 		<-done
-		b.Clients.Remove(c, c.Auth.ID())
 		if onLeave != nil {
 			onLeave(c)
 		}
