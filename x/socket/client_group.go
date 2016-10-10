@@ -52,6 +52,10 @@ func (rb WsClientManager) Remove(w *WsClient, id string) {
 
 func (rb WsClientManager) SendJson(uri string, v interface{}) {
 	var payload = BuildJsonMessage(uri, v)
+	rb.SendRaw(payload)
+}
+
+func (rb WsClientManager) SendRaw(payload []byte) {
 	for _, r := range rb {
 		r.Send(payload)
 	}
