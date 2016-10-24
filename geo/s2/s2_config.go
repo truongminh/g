@@ -7,8 +7,9 @@ import (
 // The Earth's mean radius in kilometers (according to NASA).
 const earthRadiusKm float32 = 6371.01
 
+// TODO: get the best region coverer for a given distance
 var km20Coverer = &s2.RegionCoverer{
-	MinLevel: 20,
+	MinLevel: 16,
 	MaxCells: 32,
 }
 
