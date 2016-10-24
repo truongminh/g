@@ -9,7 +9,7 @@ const earthRadiusKm float32 = 6371.01
 
 // TODO: get the best region coverer for a given distance
 var km20Coverer = &s2.RegionCoverer{
-	MinLevel: 16,
+	MinLevel: 8,
 	MaxCells: 32,
 }
 
