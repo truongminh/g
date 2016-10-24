@@ -6,19 +6,9 @@ import (
 )
 
 func (pq s2CellQueue) ascendRange(min s2.CellID, max s2.CellID, f func(IEntry)) {
-	var index = -1
-	sort.Search(pq.Len(), func(i int) bool {
-		if pq[i].S2CellID() > min {
-			// the candidate
-			index = i
-			return true
-		}
-		return false
+	var index = sort.Search(pq.Len(), func(i int) bool {
+		return pq[i].S2CellID() > min
 	})
-
-	if index == -1 {
-		return
-	}
 
 	for i := index; i < len(pq); i++ {
 		if pq[i].S2CellID() < max {
