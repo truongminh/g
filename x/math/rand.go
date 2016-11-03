@@ -7,9 +7,11 @@ import (
 
 // Source String used when generating a random identifier.
 const idSource = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+const idSourceUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 // Save the length in a constant so we don't look it up each time.
 const idSourceLen = byte(len(idSource))
+const idSourceUpperLen = byte(len(idSourceUpper))
 
 // GenerateID creates a prefixed random identifier.
 func RandString(prefix string, length int) string {
@@ -21,6 +23,20 @@ func RandString(prefix string, length int) string {
 	// Replace each random number with an alphanumeric value
 	for i, b := range id {
 		id[i] = idSource[b%idSourceLen]
+	}
+
+	// Return the formatted id
+	return fmt.Sprintf("%s_%s", prefix, string(id))
+}
+func RandStringUpper(prefix string, length int) string {
+	// Create an array with the correct capacity
+	id := make([]byte, length)
+	// Fill our array with random numbers
+	rand.Read(id)
+
+	// Replace each random number with an alphanumeric value
+	for i, b := range id {
+		id[i] = idSourceUpper[b%idSourceUpperLen]
 	}
 
 	// Return the formatted id
