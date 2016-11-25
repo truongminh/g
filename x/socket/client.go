@@ -1,10 +1,6 @@
 package socket
 
-import (
-	"bytes"
-	"encoding/json"
-	"g/x/math"
-)
+import "g/x/math"
 
 type WsClient struct {
 	ReadWriter
@@ -12,33 +8,17 @@ type WsClient struct {
 	Auth Auth
 }
 
-func (c *WsClient) Error(err error) {
-	c.Write(BuildStringMessage("/error", err.Error()))
+func (c *WsClient) WriteError(err error) {
+	c.Write(BuildErrorMessage("/server", err))
 }
 
 func (c *WsClient) WriteJson(uri string, v interface{}) {
 	c.Write(BuildJsonMessage(uri, v))
 }
 
-func BuildJsonMessage(uri string, v interface{}) []byte {
-	var data, _ = json.Marshal(v)
-	return BuildRawMessage([]byte(uri), data)
-}
-
-func BuildStringMessage(uri string, v string) []byte {
-	return BuildRawMessage([]byte(uri), []byte(v))
-}
-
-func BuildRawMessage(uri []byte, data []byte) []byte {
-	var buffer = bytes.NewBuffer(uri)
-	buffer.WriteString(" ")
-	buffer.Write(data)
-	return buffer.Bytes()
-}
-
 var idMakerChanWsClient = math.RandStringMaker{Prefix: "chan", Length: 10}
 
-const chanWriterLength = 10
+const chanWriterLength = 64
 
 type ChanWsClient struct {
 	WsClient

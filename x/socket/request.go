@@ -63,8 +63,11 @@ func (r *Request) Reply(v interface{}) {
 	r.Client.WriteJson(r.RawURI, v)
 }
 
-func (r *Request) Error(v interface{}) {
-	r.Client.WriteJson("/error/"+r.RawURI, v)
+func (r *Request) ReplyError(err error) {
+	r.Client.WriteJson("/error", map[string]interface{}{
+		"uri": r.RawURI,
+		"err": err.Error(),
+	})
 }
 
 func (r *Request) AuthID() string {
