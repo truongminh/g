@@ -30,6 +30,25 @@ func NewWsClientManager() WsClientManager {
 	return WsClientManager(map[string]WsClientByAuth{})
 }
 
+func (rb WsClientManager) ForEach(cb func(*WsClient)) {
+	for _, byAuth := range rb {
+		if byAuth != nil {
+			for _, w := range byAuth {
+				cb(w)
+			}
+		}
+	}
+}
+
+func (rb WsClientManager) ForEachByAuth(id string, cb func(*WsClient)) {
+	var byAuth = rb[id]
+	if byAuth != nil {
+		for _, w := range byAuth {
+			cb(w)
+		}
+	}
+}
+
 func (rb WsClientManager) Add(w *WsClient, id string) {
 	var r = rb[id]
 	if r == nil {
