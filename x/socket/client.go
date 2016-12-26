@@ -1,57 +1,48 @@
 package socket
 
-import "g/x/math"
+import (
+	"g/x/math"
+
+	"golang.org/x/net/websocket"
+)
 
 type WsClient struct {
-	ReadWriter
-	UID  string
-	Auth Auth
+	UID    string
+	Auth   Auth
+	Socket *websocket.Conn
+	reply  chan []byte
+}
+
+func (c *WsClient) write(data []byte) {
+	c.reply <- data
 }
 
 func (c *WsClient) WriteError(err error) {
-	c.Write(BuildErrorMessage("/server", err))
+	c.reply <- BuildErrorMessage("/server", err)
 }
 
 func (c *WsClient) WriteJson(uri string, v interface{}) {
-	c.Write(BuildJsonMessage(uri, v))
+	c.reply <- BuildJsonMessage(uri, v)
 }
 
 var idMakerChanWsClient = math.RandStringMaker{Prefix: "chan", Length: 10}
 
 const chanWriterLength = 64
 
-type ChanWsClient struct {
-	WsClient
-	chanWriter
-}
-
-func (c *ChanWsClient) Close() {
-	if c.chanWriter != nil {
-		c.chanWriter.Close()
-		c.chanWriter = nil
-	}
-}
-
-type chanWriter chan []byte
-
-func NewChanWsClient(a Auth) *WsClient {
+func newWsClient(a Auth, s *websocket.Conn) *WsClient {
 	var c = &WsClient{
-		Auth:       a,
-		UID:        idMakerChanWsClient.Next(),
-		ReadWriter: chanWriter(make(chan []byte, chanWriterLength)),
+		Auth:   a,
+		Socket: s,
+		UID:    idMakerChanWsClient.Next(),
+		reply:  make(chan []byte, chanWriterLength),
 	}
 	return c
 }
 
-func (c chanWriter) Write(data []byte) {
-	c <- data
-}
-
-func (c chanWriter) Read() ([]byte, bool) {
-	var bytes, ok = <-c
-	return bytes, ok
-}
-
-func (c chanWriter) Close() {
-	close(c)
+func (c *WsClient) Close() {
+	if c.Socket != nil {
+		c.Socket.Close()
+		close(c.reply)
+		c.Socket = nil
+	}
 }

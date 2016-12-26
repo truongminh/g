@@ -20,7 +20,7 @@ func (r WsClientByAuth) remove(w *WsClient) {
 
 func (r WsClientByAuth) Send(payload []byte) {
 	for _, w := range r {
-		w.Write(payload)
+		w.write(payload)
 	}
 }
 
@@ -90,4 +90,10 @@ func (rb WsClientManager) SendToGroup(authID string, uri string, v interface{}) 
 	var payload = BuildJsonMessage(uri, v)
 	r.Send(payload)
 	return len(r)
+}
+
+func (rb WsClientManager) Destroy() {
+	rb.ForEach(func(w *WsClient) {
+		w.Close()
+	})
 }

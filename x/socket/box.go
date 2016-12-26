@@ -50,9 +50,13 @@ func (b *Box) Serve(r *Request) {
 
 // Echo the default echo service
 func (b *Box) Echo(r *Request) {
-	r.Client.Write(r.Payload)
+	r.Client.reply <- r.Payload
 }
 
 func (b *Box) Broadcast(uri string, v interface{}) {
 	b.Clients.SendJson(uri, v)
+}
+
+func (b *Box) Destroy() {
+	b.Clients.Destroy()
 }

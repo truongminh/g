@@ -18,5 +18,4 @@ var AuthOff = AuthBearer("")
 type ReadWriter interface {
 	Read() ([]byte, bool)
 	Write([]byte)
-	Close()
 }

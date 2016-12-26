@@ -23,7 +23,7 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth, onJoin func(*WsClient), onLeave
 
 	var codec = websocket.Message
 
-	var c = NewChanWsClient(a)
+	var c = newWsClient(a, ws)
 	b.Clients.Add(c, c.Auth.ID())
 	if onJoin != nil {
 		onJoin(c)
@@ -41,7 +41,7 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth, onJoin func(*WsClient), onLeave
 
 	go func() {
 		for {
-			var bytes, ok = c.Read()
+			var bytes, ok = <-c.reply
 			if !ok {
 				break
 			}
