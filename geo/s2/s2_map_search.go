@@ -2,8 +2,10 @@ package s2
 
 import (
 	"sort"
+	"wmap/common"
 
 	"github.com/golang/geo/s2"
+	"github.com/golang/glog"
 )
 
 func (m *Map) ForEachWithin(lat float32, lng float32, km float32, f func(IEntry, float32)) {
@@ -20,7 +22,13 @@ func (m *Map) ForEachWithin(lat float32, lng float32, km float32, f func(IEntry,
 	for _, cell := range cells {
 		m.q.ascendRange(cell.RangeMin(), cell.RangeMax(), func(loc IEntry) {
 			var d = distance(searchCell, loc.S2CellID())
-			if d < km {
+			glog.Infof("so km", d)
+			// hien thi tat ca shipper online tren heatmap admin
+			if km == common.KM_ADMIN_HEAT_MAP {
+				glog.Infof("so f(loc, d) vào case admin")
+				f(loc, d)
+			} else if d < km {
+				glog.Info("so f(loc, d)  vào case ko phai")
 				f(loc, d)
 			}
 		})
