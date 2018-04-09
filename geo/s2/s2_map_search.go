@@ -20,7 +20,9 @@ func (m *Map) ForEachWithin(lat float32, lng float32, km float32, f func(IEntry,
 	for _, cell := range cells {
 		m.q.ascendRange(cell.RangeMin(), cell.RangeMax(), func(loc IEntry) {
 			var d = distance(searchCell, loc.S2CellID())
+			// hien thi tat ca shipper online tren heatmap admin
 			if d < km {
+
 				f(loc, d)
 			}
 		})
