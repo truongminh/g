@@ -2,6 +2,8 @@ package web
 
 import (
 	"net/http"
+
+	"github.com/revel/revel"
 )
 
 type IWebError interface {
@@ -57,6 +59,11 @@ func (e NotFound) StatusCode() int {
 
 func AssertNil(err error) {
 	if err != nil {
+		panic(err)
+	}
+}
+func AssertValidation(err []*revel.ValidationError) {
+	if len(err) > 0 {
 		panic(err)
 	}
 }

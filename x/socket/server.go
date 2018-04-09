@@ -25,6 +25,13 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth, onJoin func(*WsClient), onLeave
 
 	var c = newWsClient(a, ws)
 	b.Clients.Add(c, c.Auth.ID())
+	if b.Clients != nil {
+		for _, item := range b.Clients {
+			var te = item
+			glog.Info(te)
+		}
+	}
+
 	if onJoin != nil {
 		onJoin(c)
 	}
@@ -56,6 +63,7 @@ func (b *Box) Accept(ws *websocket.Conn, a Auth, onJoin func(*WsClient), onLeave
 	for {
 		var data []byte
 		if err := codec.Receive(ws, &data); err != nil {
+			glog.Info(err)
 			break
 		}
 		var r, err = NewRequest(c, data)

@@ -2,9 +2,10 @@ package web
 
 import (
 	"encoding/json"
-	"github.com/golang/glog"
 	"net/http"
 	"runtime/debug"
+
+	"github.com/golang/glog"
 )
 
 type JsonServer struct{}
@@ -21,9 +22,7 @@ func (s *JsonServer) SendError(w http.ResponseWriter, err error) {
 		if werr, ok := err.(IWebError); ok {
 			w.WriteHeader(werr.StatusCode())
 		} else {
-			glog.Error(err, string(debug.Stack()))
-			err = ErrServerError
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(200)
 		}
 		s.sendJson(w, map[string]string{
 			"status": "error",
@@ -47,6 +46,19 @@ func (s *JsonServer) SendData(w http.ResponseWriter, v interface{}) {
 		"status": "success",
 		"data":   v,
 	})
+}
+
+func (s *JsonServer) SendErrorData(w http.ResponseWriter, err error) {
+	_, ok := err.(IWebError)
+	if !ok {
+		w.Header().Add("Content-Type", "application/json")
+		s.sendJson(w, map[string]interface{}{
+			"status": "error",
+			"error":  err.Error(),
+		})
+	} else {
+		panic(err)
+	}
 }
 
 func (s *JsonServer) Success(w http.ResponseWriter) {
